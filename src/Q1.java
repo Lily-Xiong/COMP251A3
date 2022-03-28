@@ -224,7 +224,7 @@ public class Q1 {
 							exitPosition[2] = col;
 						}
 
-						int adjMatrixRow = AdjMRow(level, row, col, rowLength, colLength);
+						int adjMatrixRow = get1DIndex(level, row, col, rowLength, colLength);
 						int adjMatrixCol = adjMatrixRow;
 						// cell to itself is 1
 						adjMatrix[adjMatrixRow][adjMatrixCol] = 1;
@@ -286,7 +286,10 @@ public class Q1 {
 
 	}
 
+
 	public static int[][][] dijkstra(String[][][] jail, int[] startPosition, int numVertices) {
+
+		PriorityQueue<Node> pq = new PriorityQueue<>();
 		int levelLength = jail.length;
 		int rowLength = jail[0].length;
 		int colLength = jail[0][0].length;
@@ -295,20 +298,35 @@ public class Q1 {
 		int[][][] distances = new int[levelLength][rowLength][colLength];
 		boolean[][][] finalized = new boolean[levelLength][rowLength][colLength];
 
+//		ArrayList<ArrayList<ArrayList<Node>>> jailNodes = new ArrayList<>();
+		ArrayList<Node> nodesIn1D = new ArrayList<>();
+
 		for(int level = 0; level < levelLength; level++) {
 			for (int row = 0; row < rowLength; row++) {
 				for (int col = 0; col < colLength; col++) {
 					distances[level][row][col] = Integer.MAX_VALUE;
 					finalized[level][row][col] = false;
+					if (level == startPosition[0] && row == startPosition[1] && col == startPosition[2]) {
+						nodesIn1D.add(new Node(level, row, col, 0));
+					} else {
+						nodesIn1D.add(new Node(level, row, col, Integer.MAX_VALUE));
+					}
 				}
 			}
 		}
 		// source to itself is 0
 		distances[startPosition[0]][startPosition[1]][startPosition[2]] = 0;
 
-		for (int v = 0; v < numVertices -1; v++) {
+		Node sourceNode = nodesIn1D.get(get1DIndex(startPosition[0], startPosition[1], startPosition[2], rowLength, colLength));
+		pq.add(sourceNode);
+
+//		for (int v = 0; v < numVertices -1; v++) {
+		while (!pq.isEmpty()) {
 			// get vertex with smallest distances, mimics priority queue
-			int[] minVertex = findClosestVertex(distances, finalized);
+			Node minNode = pq.remove();
+//			int[] minVertex = findClosestVertex(distances, finalized);
+			int[] minVertex = {minNode.level, minNode.row, minNode.col};
+
 			// update adjacent vertices
 			finalized[minVertex[0]][minVertex[1]][minVertex[2]] = true;
 
@@ -319,6 +337,8 @@ public class Q1 {
 //			}
 			if (canGoEast(jail, minVertex) == 1) {
 				int[] neighbourIndices = getEastIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -327,10 +347,14 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 			if (canGoWest(jail, minVertex) == 1) {
 				int[] neighbourIndices = getWestIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -339,10 +363,14 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 			if (canGoNorth(jail, minVertex) == 1) {
 				int[] neighbourIndices = getNorthIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -351,10 +379,14 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 			if (canGoSouth(jail, minVertex) == 1) {
 				int[] neighbourIndices = getSouthIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -363,10 +395,14 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 			if (canGoUp(jail, minVertex) == 1) {
 				int[] neighbourIndices = getUpIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -375,10 +411,14 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 			if (canGoDown(jail, minVertex) == 1) {
 				int[] neighbourIndices = getDownIndices(jail, minVertex[0], minVertex[1], minVertex[2]);
+				Node neighbourNode = nodesIn1D.get(get1DIndex(neighbourIndices[0], neighbourIndices[1], neighbourIndices[2], rowLength, colLength));
+
 				int minVertexDistance = distances[minVertex[0]][minVertex[1]][minVertex[2]];
 				int neighbourVertexDistance = distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]];
 
@@ -387,6 +427,8 @@ public class Q1 {
 						&& minVertexDistance + 1 < neighbourVertexDistance) {
 
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
+					neighbourNode.cost = minVertexDistance + 1;
+					pq.add(neighbourNode);
 				}
 			}
 		}
@@ -443,7 +485,7 @@ public class Q1 {
 		}
 	}
 
-	public static int AdjMRow(int level, int row, int col, int rowLen, int colLen) {
+	public static int get1DIndex(int level, int row, int col, int rowLen, int colLen) {
 		return (level * rowLen * colLen) + (row * colLen) + col;
 	}
 
@@ -488,6 +530,29 @@ public class Q1 {
 				System.out.println();
 			}
 			System.out.println("level " + i);
+		}
+	}
+
+	public static class Node implements Comparable<Node> {
+		public int level;
+		public int row;
+		public int col;
+
+		public int cost;
+
+		public Node() {
+		}
+
+		public Node(int level, int row, int col, int cost) {
+			this.level = level;
+			this.row = row;
+			this.col = col;
+			this.cost = cost;
+		}
+
+		@Override
+		public int compareTo(Node o) {
+			return Integer.compare(this.cost, o.cost);
 		}
 	}
 }
