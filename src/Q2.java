@@ -6,11 +6,17 @@ public class Q2 {
 	public static int rings(Hashtable<Integer, ArrayList<Integer>> graph, int[]location) {
 		int EARTH = 1;
 		int ASGARD = 2;
+		int transferFromEarth = Integer.MAX_VALUE;
+		int transferFromAsgard = Integer.MAX_VALUE;
 		// find nodes with no predecessors, put them into a queue
 		// create boolean for visited.
 		boolean[] visited = new boolean[graph.size()];
 		//int[] dependencies = new int[graph.size()];
 		int[] inDegree = new int[graph.size()];
+		// initialize to 0
+		for(int i =0; i < inDegree.length; i++){
+			inDegree[i] = 0;
+		}
 
 		inDegreeCalculation(graph, inDegree);
 		// now dependencies is filled with dependencies, we want to find a source node.
@@ -19,23 +25,36 @@ public class Q2 {
 		// Todo: queue that store sources?
 		Queue<Integer> qEarth = new LinkedList<Integer>();
 		Queue<Integer> qAsgard = new LinkedList<Integer>();
-		Queue<Integer> qAsgardDuringEarth = new LinkedList<Integer>();
-		Queue<Integer> qEarthDuringAsgard = new LinkedList<Integer>();
-		// find source with degree 0 for earth
-		Integer sourceEarth = minInDegreeNodeByPlanet(inDegree, location, EARTH);
-		qEarth.add(sourceEarth);
-		Integer sourceAsgard = minInDegreeNodeByPlanet(inDegree, location, ASGARD);
-		qAsgard.add(sourceAsgard);
 
-		// now perform topological sort on sourceEarth and source Asgard
-		int transferStartFromEarth = topologicalSortHelper(graph, dependencies, location, EARTH, qEarth, qAsgardDuringEarth);
-		int transferStartFromAsgard = topologicalSortHelper(graph, dependencies, location, ASGARD, qAsgard, qEarthDuringAsgard);
+		// find source with degree 0 for earth, there might not be a source
+		Integer sourceEarth = zeroDegreeNodeByPlanet(inDegree, location, EARTH);
+		Integer sourceAsgard = zeroDegreeNodeByPlanet(inDegree, location, ASGARD);
 
-		if(transferStartFromAsgard <= transferStartFromEarth){
-			return transferStartFromAsgard;
+		if(sourceEarth != -1){
+			qEarth.add(sourceEarth);
+			if(sourceAsgard != -1){
+				qAsgard.add(sourceAsgard);
+			}
+			transferFromEarth = topologicalSortHelper(graph, inDegree, location, EARTH, ASGARD, qEarth, qAsgard);
+			System.out.println("transferFromEarth " + transferFromEarth);
 		}
 
-		return transferStartFromEarth;
+
+		if(sourceAsgard != -1){
+			qAsgard.add(sourceAsgard);
+			if(sourceEarth != -1){
+				qEarth.add(sourceEarth);
+			}
+			transferFromAsgard = topologicalSortHelper(graph, inDegree, location, ASGARD, EARTH, qAsgard, qEarth);
+			System.out.println("transferFromAsgard " + transferFromAsgard);
+		}
+
+
+		if(transferFromEarth < transferFromAsgard){
+			return transferFromEarth;
+		}
+
+		return transferFromAsgard;
 	}
 
 	// dependencies in the beginning
@@ -80,51 +99,48 @@ public class Q2 {
 		return maxDependencyNode;
 	}
 	// returns number of moves
-	public static int topologicalSortHelper(Hashtable<Integer, ArrayList<Integer>> graph, int[] dependencies,
-											 int[] location, int planetNum, Queue<Integer> qCurPlanet, Queue<Integer> qOtherPlanet){
+	public static int topologicalSortHelper(Hashtable<Integer, ArrayList<Integer>> graph, int[] inDegree,
+											 int[] location, int curPlanetNum, int otherPlanetNum, Queue<Integer> qCurPlanet, Queue<Integer> qOtherPlanet){
 		int transfer = 0;
 		while(!qCurPlanet.isEmpty() || !qOtherPlanet.isEmpty()){
-			topologicalSortPlanet(graph, dependencies, location, planetNum, qCurPlanet, qOtherPlanet);
+			topologicalSortPlanet(graph, inDegree, location, curPlanetNum, qCurPlanet, qOtherPlanet);
 			transfer ++;
 			// now need to swap qCurPlanet and qOtherPlanet
 			if(!qCurPlanet.isEmpty() || !qOtherPlanet.isEmpty()){
-				topologicalSortPlanet(graph, dependencies, location, planetNum, qOtherPlanet, qCurPlanet);
+				topologicalSortPlanet(graph, inDegree, location, otherPlanetNum, qOtherPlanet, qCurPlanet);
 				transfer++;
 			}
 
 		}
-		return transfer;
+		return transfer -1;
 
 	}
 
 
-	public static void topologicalSortPlanet(Hashtable<Integer, ArrayList<Integer>> graph, int[] dependencies,
+	public static void topologicalSortPlanet(Hashtable<Integer, ArrayList<Integer>> graph, int[] inDegree,
 											 int[] location, int planetNum, Queue<Integer> qCurPlanet, Queue<Integer> qOtherPlanet){
 		// Stores sorted nodes
-		ArrayList<Integer> sortedNodes = new ArrayList<>();
 		while (!qCurPlanet.isEmpty()) {
 			// get minNode
 			int minNode = qCurPlanet.remove();
-			sortedNodes.add(minNode);
+
 
 			// iterate through minNode's neighbour nodes??... decrease in degree
 			ArrayList<Integer> neighbourNodes = graph.get(minNode);
 			for(Integer neighbour : neighbourNodes){
-				// decrease dependencies
-				// TODO: dependencies = in degree?
-				// TODO: dependencies = out degree!!
-				dependencies[neighbour] = dependencies[neighbour] -1;
-				System.out.println("neighbor" + neighbour + "dependencies" + dependencies[neighbour]);
+
+				inDegree[neighbour] = inDegree[neighbour] -1;
+				System.out.println("neighbor" + neighbour + "inDegree" + inDegree[neighbour]);
 				// same planet and in degree == 0;
-				if(dependencies[neighbour] == 0){
+				if(inDegree[neighbour] == 0){
 
 					System.out.println(neighbour);
 					System.out.println(location[neighbour]);
 
-					if(location[neighbour] == planetNum){
+					if(location[neighbour] == planetNum && !qCurPlanet.contains(neighbour)){
 						qCurPlanet.add(neighbour);
 					}
-					else{
+					else if(!qOtherPlanet.contains(neighbour)){
 						qOtherPlanet.add(neighbour);
 					}
 
@@ -144,10 +160,10 @@ public class Q2 {
 			}
 		}
 	}
-	public static Integer minInDegreeNodeByPlanet(int[] inDegree, int[] location, int planetNum){
+	public static Integer zeroDegreeNodeByPlanet(int[] inDegree, int[] location, int planetNum){
 		// initialize to -1
 		int minInDegreeNode = -1;
-		int minInDegree = -1;
+		int minInDegree = Integer.MAX_VALUE;
 		for(int i = 0; i < inDegree.length; i++){
 			if(location[i] == planetNum && inDegree[i] < minInDegree){
 				minInDegree = inDegree[i];
@@ -155,33 +171,91 @@ public class Q2 {
 
 			}
 		}
-
-		return minInDegreeNode;
+		if(minInDegree == 0){
+			return minInDegreeNode;
+		}
+		else{
+			return -1;
+		}
 	}
 
 	public static void main(String[] args) {
-		Hashtable<Integer, ArrayList<Integer>> graph = new Hashtable<>();
+//		Hashtable<Integer, ArrayList<Integer>> graph = new Hashtable<>();
+//		ArrayList<Integer> key0 = new ArrayList<>();
+//		ArrayList<Integer> key1 = new ArrayList<>();
+//		ArrayList<Integer> key2 = new ArrayList<>();
+//		ArrayList<Integer> key3 = new ArrayList<>();
+//		ArrayList<Integer> key4 = new ArrayList<>();
+//		key0.add(2);
+//		key0.add(1);
+//		key1.add(3);
+//		key1.add(4);
+//		key2.add(3);
+//		key2.add(4);
+//
+//
+//		graph.put(0, key0);
+//		graph.put(1, key1);
+//		graph.put(2, key2);
+//		graph.put(3, key3);
+//		graph.put(4, key4);
+//
+//		int[] location = {1,2,1,2,1};
+//		int moves = rings(graph, location);
+//		System.out.println(moves);
+
+//		Hashtable<Integer, ArrayList<Integer>> graph2 = new Hashtable<>();
+//		ArrayList<Integer> key0 = new ArrayList<>();
+//		ArrayList<Integer> key1 = new ArrayList<>();
+//		ArrayList<Integer> key2 = new ArrayList<>();
+//		ArrayList<Integer> key3 = new ArrayList<>();
+//		ArrayList<Integer> key4 = new ArrayList<>();
+//
+//		key0.add(1);
+//		key0.add(3);
+//		key1.add(3);
+//		key2.add(4);
+//		key2.add(0);
+//		key2.add(3);
+//		key4.add(0);
+//		key4.add(1);
+//		key4.add(3);
+//		graph2.put(0, key0);
+//		graph2.put(1, key1);
+//		graph2.put(2, key2);
+//		graph2.put(3, key3);
+//		graph2.put(4, key4);
+//
+//		int[] location = {2,1,2,2,1};
+//		int moves = rings(graph2, location);
+//		System.out.println(moves);
+
+		Hashtable<Integer, ArrayList<Integer>> graph3 = new Hashtable<>();
 		ArrayList<Integer> key0 = new ArrayList<>();
 		ArrayList<Integer> key1 = new ArrayList<>();
 		ArrayList<Integer> key2 = new ArrayList<>();
 		ArrayList<Integer> key3 = new ArrayList<>();
 		ArrayList<Integer> key4 = new ArrayList<>();
-		key0.add(2);
+
 		key0.add(1);
-		key1.add(3);
-		key1.add(4);
+		key0.add(3);
+		key0.add(4);
+		key0.add(2);
 		key2.add(3);
+		key2.add(1);
 		key2.add(4);
+		key3.add(1);
+		key4.add(1);
+		key4.add(3);
 
+		graph3.put(0, key0);
+		graph3.put(1, key1);
+		graph3.put(2, key2);
+		graph3.put(3, key3);
+		graph3.put(4, key4);
 
-		graph.put(0, key0);
-		graph.put(1, key1);
-		graph.put(2, key2);
-		graph.put(3, key3);
-		graph.put(4, key4);
-
-		int[] location = {1,2,1,2,1};
-		int moves = rings(graph, location);
+		int[] location = {2,2,2,1,2};
+		int moves = rings(graph3, location);
 		System.out.println(moves);
 	}
 
