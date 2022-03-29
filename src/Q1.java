@@ -413,6 +413,7 @@ public class Q1 {
 					distances[neighbourIndices[0]][neighbourIndices[1]][neighbourIndices[2]] = minVertexDistance + 1;
 					neighbourVertex.currShortestDistance = minVertexDistance + 1;
 					pq.add(neighbourVertex);
+					pq.add(neighbourVertex);
 				}
 			}
 			if (canGoDown(jail, minVertexPosition) == 1) {
