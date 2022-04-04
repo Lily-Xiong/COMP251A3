@@ -17,13 +17,12 @@ public class FordFulkerson {
 		}
 
 		stack.push(source);
-		// todo: maybe terminate early if adjNode is destination
+
 		boolean breakOuterLoop = false;
 		while (!stack.isEmpty() && !breakOuterLoop) {
 			int current = stack.pop();
 			if (!isVisited[current]) {
 				isVisited[current] = true;
-//				visit(current);
 				for (Edge edge : edges) {
 					if (edge.nodes[0] == current && edge.weight > 0) {
 						int adjNode = edge.nodes[1];
@@ -35,31 +34,10 @@ public class FordFulkerson {
 							parent[adjNode] = current;
 						}
 					}
-//					if (edge.nodes[1] == current && edge.weight > 0) {
-//						int adjNode = edge.nodes[0];
-//						if (!isVisited[adjNode]) {
-//							if (adjNode == destination) {
-//								breakOuterLoop = true;
-//							}
-//							stack.push(adjNode);
-//							parent[adjNode] = current;
-//						}
-//					}
 				}
 			}
 		}
 
-			// in the beginning residual graph = graph itself
-//		WGraph residual = new WGraph(graph);
-//		Stack<Integer> stack = new Stack<>();
-//		stack.push(source);
-//		HashMap<Edge, Boolean> visited= new HashMap<>();
-//		for(Edge e : graph.getEdges()){
-//			if (visited.get(e) == null){
-//				pathDFSHelper(source, destination, graph, residual, visited, e, stack);
-//			}
-//
-//		}
 
 		if (parent[destination] == -1) {
 			return path;
@@ -75,20 +53,6 @@ public class FordFulkerson {
 		return path;
 	}
 
-//	public static ArrayList<Integer> pathDFSHelper(Integer source, Integer destination, WGraph graph, WGraph residual,
-//												   HashMap<Edge, Boolean> visited, Edge e, Stack<Integer> stack){
-//		visited.put(e, true);
-//		Integer p = stack.pop();
-//		while(!stack.isEmpty()){
-//			for(Edge edge: graph.listOfEdgesSorted()){
-//				if(visited.get(edge) == null && residual.getEdge(p, )){
-//
-//				}
-//			}
-//		}
-//
-//
-//	}
 
 
 	public static String fordfulkerson( WGraph graph){
@@ -131,12 +95,6 @@ public class FordFulkerson {
 			maxFlow = maxFlow + pathFlow;
 		}
 
-//		System.out.println("ck1");
-//		System.out.println(graph);
-//		System.out.println();
-//		System.out.println(residualGraph);
-//		System.out.println("ck2");
-//		ArrayList<Edge> allForwardEdges = graph.getEdges();
 
 		WGraph newGraph = new WGraph();
 		newGraph.setSource(source);
@@ -144,8 +102,8 @@ public class FordFulkerson {
 		for (Edge e : graph.getEdges()) {
 			int node1 = e.nodes[0];
 			int node2 = e.nodes[1];
-			Edge residualGraphEdge = residualGraph.getEdge(node2, node1);
-			if (residualGraphEdge == null){
+			Edge residualGraphBackwardEdge = residualGraph.getEdge(node2, node1);
+			if (residualGraphBackwardEdge == null) {
 				Edge newEdge = new Edge(node1, node2, 0);
 				newGraph.addEdge(newEdge);
 			} else{
@@ -153,13 +111,6 @@ public class FordFulkerson {
 				newGraph.addEdge(newEdge);
 			}
 		}
-//		for (Edge edge : residualGraph.getEdges()) {
-//			int node1 = edge.nodes[0];
-//			int node2 = edge.nodes[1];
-//			if (graph.getEdge(node1, node2) == null) {
-//				residualGraph.getEdges().remove(edge);
-//			}
-//		}
 
 		graph = new WGraph(newGraph);
 
@@ -167,36 +118,13 @@ public class FordFulkerson {
 		return answer;
 	}
 
-	// todo: remove this method
-	public void updateEdge(Edge e, Integer newWeight) throws RuntimeException{
-		e.weight = newWeight;
-	}
 
 
 	 public static void main(String[] args){
-//		String file = args[0];
-//		File f = new File(file);
-//		WGraph g = new WGraph(file);
-//		 String fordfulkerson = fordfulkerson(g);
-//		 System.out.println(fordfulkerson);
-		 WGraph g = new WGraph();
-		 g.setSource(0);
-		 g.setDestination(9);
-		 Edge[] edges = new Edge[] {
-				 new Edge(0, 1, 10),
-				 new Edge(0, 2, 5),
-				 new Edge(2, 3, 5),
-				 new Edge(1, 3, 10),
-				 new Edge(3, 4, 5),
-				 new Edge(4, 5, 10),
-				 new Edge(4, 6, 5),
-				 new Edge(6, 7, 5),
-				 new Edge(6, 8, 10),
-				 new Edge(8, 9, 10),
-		 };
-		 Arrays.stream(edges).forEach(e->g.addEdge(e));
-		 String result = FordFulkerson.fordfulkerson(g);
-		 System.out.println(result);
+		String file = args[0];
+		File f = new File(file);
+		WGraph g = new WGraph(file);
+		System.out.println(fordfulkerson(g));
 	 }
 }
 
