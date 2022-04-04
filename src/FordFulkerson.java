@@ -106,7 +106,6 @@ public class FordFulkerson {
 				break;
 			}
 
-			// todo: memset
 			int pathFlow = Integer.MAX_VALUE;
 			for (int i = 0; i < path.size() - 1; i++) {
 				Integer node1 = path.get(i);
@@ -138,6 +137,22 @@ public class FordFulkerson {
 //		System.out.println(residualGraph);
 //		System.out.println("ck2");
 //		ArrayList<Edge> allForwardEdges = graph.getEdges();
+
+		WGraph newGraph = new WGraph();
+		newGraph.setSource(source);
+		newGraph.setDestination(destination);
+		for (Edge e : graph.getEdges()) {
+			int node1 = e.nodes[0];
+			int node2 = e.nodes[1];
+			Edge residualGraphEdge = residualGraph.getEdge(node2, node1);
+			if (residualGraphEdge == null){
+				Edge newEdge = new Edge(node1, node2, 0);
+				newGraph.addEdge(newEdge);
+			} else{
+				Edge newEdge = new Edge(node1, node2, residualGraph.getEdge(node2, node1).weight);
+				newGraph.addEdge(newEdge);
+			}
+		}
 //		for (Edge edge : residualGraph.getEdges()) {
 //			int node1 = edge.nodes[0];
 //			int node2 = edge.nodes[1];
@@ -145,9 +160,8 @@ public class FordFulkerson {
 //				residualGraph.getEdges().remove(edge);
 //			}
 //		}
-//
-//		graph = new WGraph(residualGraph);
-		// find a path
+
+		graph = new WGraph(newGraph);
 
 		answer += maxFlow + "\n" + graph.toString();	
 		return answer;
@@ -160,11 +174,29 @@ public class FordFulkerson {
 
 
 	 public static void main(String[] args){
-		String file = args[0];
-		File f = new File(file);
-		WGraph g = new WGraph(file);
-		 String fordfulkerson = fordfulkerson(g);
-		 System.out.println(fordfulkerson);
+//		String file = args[0];
+//		File f = new File(file);
+//		WGraph g = new WGraph(file);
+//		 String fordfulkerson = fordfulkerson(g);
+//		 System.out.println(fordfulkerson);
+		 WGraph g = new WGraph();
+		 g.setSource(0);
+		 g.setDestination(9);
+		 Edge[] edges = new Edge[] {
+				 new Edge(0, 1, 10),
+				 new Edge(0, 2, 5),
+				 new Edge(2, 3, 5),
+				 new Edge(1, 3, 10),
+				 new Edge(3, 4, 5),
+				 new Edge(4, 5, 10),
+				 new Edge(4, 6, 5),
+				 new Edge(6, 7, 5),
+				 new Edge(6, 8, 10),
+				 new Edge(8, 9, 10),
+		 };
+		 Arrays.stream(edges).forEach(e->g.addEdge(e));
+		 String result = FordFulkerson.fordfulkerson(g);
+		 System.out.println(result);
 	 }
 }
 
